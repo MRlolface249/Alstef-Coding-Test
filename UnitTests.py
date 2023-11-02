@@ -1,9 +1,12 @@
 import unittest
 import io
 from unittest.mock import patch
-from Alstef import main
+from Alstef import main, readPersistedNumber, persistCurrentNumber
 
 class MyTestCase(unittest.TestCase):
+
+    # tests for issue #1
+
     @patch('builtins.input', side_effect=["0"])
     def test_zero(self, mock_input):
         expected_output = "The number you entered is:  0\n"
@@ -51,6 +54,32 @@ class MyTestCase(unittest.TestCase):
         with patch('sys.stdout', new=io.StringIO()) as fake_out:
             main()
             self.assertEqual(fake_out.getvalue(), expected_output)
+
+    # tests for issue #2
+
+    def test_read_previous_number(self):
+        fileName = 'testNumber.txt'
+        with open(fileName, 'w') as file:
+            file.write("100")
+        persistedNumber = readPersistedNumber(fileName)
+        self.assertEqual(persistedNumber, 100)
+
+    def test_read_previous_number_non_existent_file(self):
+        fileName = 'nonExistentFile.txt'
+        persisted_number = readPersistedNumber(fileName)
+        self.assertEqual(persisted_number, 0)
+
+    def test_save_current_number(self):
+        fileName = 'testNumber.txt'
+        persistCurrentNumber(fileName, 50)
+        with open(fileName, 'r') as file:
+            content = file.read()
+        self.assertEqual(content, "50")
+
+    def reset(self):
+        fileName = 'testNumber.txt'
+        if os.path.exists(fileName):
+            os.remove(fileName)
 
 if __name__ == '__main__':
     unittest.main()
